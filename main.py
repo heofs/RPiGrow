@@ -1,29 +1,36 @@
 import requests
 import time
-from sensor import get_temp
+from sensor_functions import get_temp, get_ds18_sensors
+from API_functions import post_value, get_sensor_indexes
 
 settings = {
-    "url": "http://192.168.1.40:80/envlog/temp/",
+    "api": {
+        "sensors_url": "http://192.168.1.39:8000/sensors/",
+        "readings_url": "http://192.168.1.39:8000/sensors/reading/"
+    },
     "interval": 180
 }
-sensors = {
-    "28-0416816c98ff": "reservoir",
-    "28-041692e89dff": "inside_tent",
-    "28-0316013259ff": "outside_tent",
-}
 
-def post_value(sensorid, location, value):
-    r = requests.post(settings["url"], data={
-        "sensor": str(sensorid),
-        "location": str(location),
-        "value": float(value)
-    })
-    print(r.status_code, r.reason)
+sensor_indexes = get_sensor_indexes(settings["api"]["sensors_url"])
+active_sensors = get_ds18_sensors()
+# print(sensor_indexes.keys())
+# print(active_sensors)
+for sensor in active_sensors:
+    if sensor not in sensor_indexes.keys():
+        print(sensor, 'is not in database.')
+        print(sensor)
 
+# while True:
+#     sensor_readings = {}
+#     try:
+#         for sensor in active_sensors:
+#             sensor_index = sensor_indexes[sensor]
+#             sensor_value = get_temp(sensor)
 
-while True:
-    for key in sensors:
-        temp = get_temp(key)
-        post_value(key, sensors[key], temp)
+#             post_value(settings["api"]["readings_url"], sensor_index, sensor_value)
+#     except KeyboardInterrupt:
+#         pass
+#         # print("Keyboard interrupt")
+#     # time.sleep(settings["interval"])
 
-    time.sleep(30)
+#     break
